@@ -6,6 +6,7 @@
 #include <numeric>
 #include <string>
 #include <vector>
+#include <array>
 
 namespace atcoder {
 
@@ -233,13 +234,26 @@ std::vector<int> lcp_array(const std::vector<T>& s,
     return lcp;
 }
 
-std::vector<int> lcp_array(const std::string& s, const std::vector<int>& sa) {
+std::vector<int> lcp_array(const std::string& s, 
+                           const std::vector<int>& sa) {
     int n = int(s.size());
     std::vector<int> s2(n);
     for (int i = 0; i < n; i++) {
         s2[i] = s[i];
     }
     return lcp_array(s2, sa);
+}
+
+int suffix_array_lower_bound(const std::string& s,
+                             const std::vector<int>& sa,
+                             const std::string& t) {
+    int l = -1, r = int(sa.size());
+    while (r - l > 1) {
+        int m = (l + r) / 2;
+        s.compare(sa[m], t.size(), t) < 0 ? 
+                    l = m : r = m;
+    }
+    return r;
 }
 
 // Reference:
@@ -268,6 +282,53 @@ std::vector<int> z_algorithm(const std::string& s) {
         s2[i] = s[i];
     }
     return z_algorithm(s2);
+}
+
+// Reference:
+// D. E. Knuth, J. H. Morris, and V. R. Pratt,
+// Fast Pattern Matching in Strings
+template <class T> std::vector<int> kmp_algorithm(const std::vector<T>& s) {
+    int n = int(s.size());
+    std::vector<int> pi(n);
+    for (int i = 1; i < n; i++) {
+        int j = pi[i - 1];
+        while (j > 0 && s[i] != s[j]) { j = pi[j - 1]; }
+        if (s[i] == s[j]) { j++; } pi[i] = j;
+    }
+    return pi;
+}
+
+std::vector<int> kmp_algorithm(const std::string& s) {
+    int n = int(s.size());
+    std::vector<int> s2(n);
+    for (int i = 0; i < n; i++) {
+        s2[i] = s[i];
+    }
+    return kmp_algorithm(s2);
+}
+
+// Reference:
+// A. Karp, R. Miller, and M. Rosenberg,
+// Rapid identification of repeated patterns in strings, trees and arrays
+std::vector<int> manacher(const std::string& s) {
+    std::string t = "#";
+    int n = int(s.size() * 2 + 1);
+    for (char c : s) {
+        t += (std::string(1, c) + "#");
+    }
+    std::vector<int> r(n);
+    for (int i = 0, j = 0; i < n; i++) {   
+        if ((j * 2) - i >= 0 && j + r[j] > i) {
+            r[i] = std::min(r[(j * 2) - i], j + r[j] - i);
+        }
+        while (i - r[i] >= 0 && i + r[i] < n && t[i - r[i]] == t[i + r[i]]) {
+            r[i]++;
+        }
+        if (i + r[i] > j + r[j]) {
+            j = i;
+        }
+    }
+    return r;
 }
 
 }  // namespace atcoder

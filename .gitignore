@@ -4,3 +4,5 @@ build
 !tools/*.html
 tools/ac-library.zip
 __pycache__
+a.cpp
+a.out
