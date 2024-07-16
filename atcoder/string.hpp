@@ -250,7 +250,7 @@ int suffix_array_lower_bound(const std::string& s,
     int l = -1, r = int(sa.size());
     while (r - l > 1) {
         int m = (l + r) / 2;
-        s.compare(sa[m], t.size(), t) < 0 ? 
+        (s.compare(sa[m], t.size(), t) < 0) ? 
                     l = m : r = m;
     }
     return r;

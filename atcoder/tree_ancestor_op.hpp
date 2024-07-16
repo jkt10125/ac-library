@@ -5,9 +5,9 @@
 #include <array>
 #include <functional>
 
-#include "atcoder/internal_bit"
-
 namespace atcoder {
+
+// op should be idempotant function
 
 #if __cplusplus >= 201703L
 
@@ -25,23 +25,24 @@ template <class S, S (*op)(S, S), S (*e)()> struct treeancestor_op {
 
   public:
     
-    treeancestor_op(std::vector<std::vector<std::pair<int, S>>>& A, int root) {
+    treeancestor_op(const std::vector<std::vector<std::pair<int, S>>>& A, int root) {
         _n = int(A.size());
-        log = internal::bit_ceil((unsigned int)_n);
+        log = std::__lg(_n - 1) + 1;
         lvl.resize(_n);
         lift.resize(log, std::vector<int>(_n));
         maxe.resize(log, std::vector<S>(_n));
 
-        dfs(root, -1);
+        dfs(root, -1, A);
     }
 
-    treeancestor_op(std::vector<int>& par, std::vector<S>& W) {
+    treeancestor_op(const std::vector<int>& par,
+                    const std::vector<S>& W) {
         _n = par.size();
         int root = 0;
         while (root < _n && par[root] != -1) { root++; }
-        static_assert(root < _n, "root not found");
-        for (int i = root + 1; i < _n; i++) 
-            static_assert(par[i] != -1, "multiple roots found");
+        // static_assert(root < _n, "root not found");
+        // for (int i = root + 1; i < _n; i++) 
+        //     static_assert(par[i] != -1, "multiple roots found");
         std::vector<std::vector<std::pair<int, S>>> A(_n);
         for (int i = 0; i < _n; i++) {
             if (i == root) continue;
@@ -93,7 +94,7 @@ template <class S, S (*op)(S, S), S (*e)()> struct treeancestor_op {
     std::vector<std::vector<S>> maxe;
     std::vector<std::vector<int>> lift;
 
-    void dfs(int x, int p) {
+    void dfs(int x, int p, const std::vector<std::vector<std::pair<int, S>>>& A) {
         lvl[x] = (p != -1) ? lvl[p] + 1 : 0;
         lift[0][x] = p;
         for (int i = 1; i < log; i++) {
@@ -103,7 +104,7 @@ template <class S, S (*op)(S, S), S (*e)()> struct treeancestor_op {
         for (auto [y, w] : A[x]) {
             if (y != p) {
                 maxe[0][y] = w;
-                dfs(y, x);
+                dfs(y, x, A);
             }
         }
     }

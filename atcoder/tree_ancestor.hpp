@@ -31,31 +31,6 @@ struct treeancestor {
         dfs1(root, -1), dfs2(root);
     }
 
-    void dfs1(int x, int p) {
-        if ((par[x] = p) == -1) { lvl[x] = 0; }
-        else {
-            adj[x].erase(std::find(adj[x].begin(), adj[x].end(), p));
-            lvl[x] = lvl[p] + 1;
-        }
-        sz[x] = 1;
-        for (int &it : adj[x]) {
-            dfs1(it, x);
-            sz[x] += sz[it];
-            if (sz[it] > sz[adj[x][0]]) {
-                std::swap(it, adj[x][0]);
-            }
-        }
-    }
-
-    void dfs2(int x) {
-        in[x] = time++, seq[in[x]] = x;
-        for (int it : adj[x]) {
-            top[it] = (it == adj[x].front()) ? top[x] : it;
-            dfs2(it);
-        }
-        out[x] = time;
-    }
-
     int lca(int x, int y) {
         while (top[x] != top[y]) {
             if (lvl[top[x]] > lvl[top[y]]) { x = par[top[x]]; }
@@ -89,7 +64,7 @@ struct treeancestor {
             return par[x];
         }
         auto itr = std::upper_bound(adj[r].begin(), adj[r].end(), x, [&] (int a, int b) { return in[a] < in[b]; });
-        return *(--itr);
+        return *(std::prev(itr));
     }
 
     int rooted_size(int r, int x) {
@@ -108,6 +83,31 @@ struct treeancestor {
     int _n, time;
     std::vector<int> sz, top, lvl, par, in, out, seq;
     std::vector<std::vector<int>> adj;
+
+    void dfs1(int x, int p) {
+        if ((par[x] = p) == -1) { lvl[x] = 0; }
+        else {
+            adj[x].erase(std::find(adj[x].begin(), adj[x].end(), p));
+            lvl[x] = lvl[p] + 1;
+        }
+        sz[x] = 1;
+        for (int &it : adj[x]) {
+            dfs1(it, x);
+            sz[x] += sz[it];
+            if (sz[it] > sz[adj[x][0]]) {
+                std::swap(it, adj[x][0]);
+            }
+        }
+    }
+
+    void dfs2(int x) {
+        in[x] = time++, seq[in[x]] = x;
+        for (int it : adj[x]) {
+            top[it] = (it == adj[x].front()) ? top[x] : it;
+            dfs2(it);
+        }
+        out[x] = time;
+    }
 };
 
 } // namespace atcoder
