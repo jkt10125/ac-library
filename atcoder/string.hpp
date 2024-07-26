@@ -331,6 +331,33 @@ std::vector<int> manacher(const std::string& s) {
     return r;
 }
 
+// Reference:
+// https://codeforces.com/blog/entry/12145?#comment-168098
+
+struct SingleHash {
+
+  public:
+    SingleHash(const string& s, int base = 153, int _mod = 1000000009) : mod(_mod) {
+        int n = s.size();
+        suf.assign(n + 1, 0); // suf[n] = 0
+        b.assign(n + 1, 1);
+        for (int i = n - 1; i >= 0; --i) {
+            suf[i] = int((s[i] + suf[i + 1] * 1ll * base) % mod);
+            b[n - i] = int(b[n - i - 1] * 1ll * base % mod);
+        }
+    }
+
+    int substr(int l, int r) const { // [l, r]
+        assert(0 <= l && l <= r && r < int(suf.size()) - 1);
+        int v = int((suf[l] - suf[r + 1] * 1ll * b[r - l + 1]) % mod);
+        return (v < 0) ? v + mod : v;
+    }
+  
+  private:
+    vector<int> suf, b;
+    int mod;
+};
+
 }  // namespace atcoder
 
 #endif  // ATCODER_STRING_HPP
