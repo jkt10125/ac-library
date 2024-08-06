@@ -4,7 +4,7 @@
 #include <vector>
 #include <algorithm>
 
-#include "atcoder/point"
+#include "point.hpp"
 
 namespace atcoder {
 

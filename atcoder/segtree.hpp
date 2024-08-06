@@ -6,7 +6,7 @@
 #include <functional>
 #include <vector>
 
-#include "atcoder/internal_bit"
+#include "internal_bit.hpp"
 
 namespace atcoder {
 

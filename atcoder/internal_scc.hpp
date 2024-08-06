@@ -5,7 +5,7 @@
 #include <utility>
 #include <vector>
 
-#include "atcoder/internal_csr"
+#include "internal_csr.hpp"
 
 namespace atcoder {
 namespace internal {

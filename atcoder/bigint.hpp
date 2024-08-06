@@ -5,7 +5,7 @@
 #include <string>
 #include <algorithm>
 
-#include "atcoder/convolution"
+#include "convolution.hpp"
 
 namespace atcoder {
 

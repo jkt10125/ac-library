@@ -3,15 +3,14 @@
 
 #include <cassert>
 #include <numeric>
-#include <algorithm>
 #include <type_traits>
 
 #ifdef _MSC_VER
 #include <intrin.h>
 #endif
 
-#include "atcoder/internal_math"
-#include "atcoder/internal_type_traits"
+#include "internal_math.hpp"
+#include "internal_type_traits.hpp"
 
 namespace atcoder {
 
@@ -103,23 +102,15 @@ struct static_modint : internal::static_modint_base {
         }
         return r;
     }
-
     mint inv() const {
-        if (_v < preprocess_limit) {
-            preprocess(_v);
-            return _inv[_v];
+        if (prime) {
+            assert(_v);
+            return pow(umod() - 2);
+        } else {
+            auto eg = internal::inv_gcd(_v, m);
+            assert(eg.first == 1);
+            return eg.second;
         }
-        return naive_inv();
-    }
-
-    mint fact() const {
-        preprocess(_v);
-        return _fact[_v];
-    }
-
-    mint fact_inv() const {
-        preprocess(_v);
-        return _ifact[_v];
     }
 
     friend mint operator+(const mint& lhs, const mint& rhs) {
@@ -141,67 +132,10 @@ struct static_modint : internal::static_modint_base {
         return lhs._v != rhs._v;
     }
 
-    // sqrt algorithm by Tonelli and Shanks
-    // Reference: https://en.wikipedia.org/wiki/Tonelli%E2%80%93Shanks_algorithm
-    // Time complexity: O(log^2 m)
-    mint sqrt() const {
-        assert(prime);
-        if (_v == 0) return 0;
-        if (m == 2) return _v;
-        int e = 0, md = m - 1;
-        if (pow(md / 2) != 1) return 0;
-        mint b = 1;
-        while (b.pow(md / 2) == 1) b += 1;
-        while (md % 2 == 0) md >>= 1, e++;
-        mint x = pow((md - 1) / 2), y = (*this) * x * x;
-        x *= (*this);
-        mint z = b.pow(md);
-        while (y != 1) {
-            int j = 0;
-            mint t = y;
-            while (t != 1) t *= t, j++;
-            z = z.pow(1LL << (e - j - 1));
-            x *= z, z *= z, y *= z;
-            e = j;
-        }
-        return mint(std::min(x.val(), m - x.val()));
-    }
-
   private:
     unsigned int _v;
     static constexpr unsigned int umod() { return m; }
     static constexpr bool prime = internal::is_prime<m>;
-    static std::vector<unsigned int> _fact, _ifact, _inv;
-    static unsigned int processed_until;
-    static constexpr unsigned int preprocess_limit = (1 << 20);
-
-    mint naive_inv() const {
-        if (prime) {
-            assert(_v);
-            return pow(m - 2);
-        } else {
-            auto eg = internal::inv_gcd(_v, m);
-            assert(eg.first == 1);
-            return eg.second;
-        }
-    }
-
-    static void preprocess(int val) {
-        if (val <= processed_until) return;
-        _ifact.resize(val + 1);
-        _fact.resize(val + 1);
-        _inv.resize(val + 1);
-        if (val == 0) return;
-        for (long long i = processed_until + 1; i <= val; i++) {
-            _fact[i] = _fact[i - 1] * i % m;
-        }
-        _ifact[val] = mint(_fact[val]).naive_inv().val();
-        for (long long i = val - 1; i >= processed_until; i--) {
-            _ifact[i] = _ifact[i + 1] * (i + 1) % m;
-            _inv[i + 1] = _ifact[i + 1] * 1ll * _fact[i] % m;
-        }
-        processed_until = val;
-    }
 };
 
 template <int id> struct dynamic_modint : internal::modint_base {
@@ -339,13 +273,3 @@ using is_dynamic_modint_t = std::enable_if_t<is_dynamic_modint<T>::value>;
 }  // namespace atcoder
 
 #endif  // ATCODER_MODINT_HPP
-
-
-// DO NOT FORGET TO INITIALIZE THE STATIC VARIABLES
-
-// using mint = atcoder::modint998244353;
-
-// template <> std::vector<unsigned int> mint::_fact = {1};
-// template <> std::vector<unsigned int> mint::_ifact = {1};
-// template <> std::vector<unsigned int> mint::_inv = {0};
-// template <> unsigned int mint::processed_until = 0;

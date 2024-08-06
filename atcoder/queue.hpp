@@ -3,7 +3,7 @@
 
 #include <array>
 
-#include "atcoder/stack"
+#include "stack.hpp"
 
 namespace atcoder {
 

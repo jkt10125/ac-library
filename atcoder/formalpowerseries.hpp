@@ -6,13 +6,12 @@
 #include <vector>
 #include <algorithm>
 
-#include "atcoder/modint"
-#include "atcoder/convolution"
+#include "combinatorics.hpp"
+#include "convolution.hpp"
 
 namespace atcoder {
 
-using T = modint998244353;
-// template <class T>
+template <class T>
 struct formal_power_series : std::vector<T> {
     using std::vector<T>::vector;
     using P = formal_power_series;
@@ -195,6 +194,7 @@ struct formal_power_series : std::vector<T> {
         if (k == 0) {
             P ret(deg, T(0));
             if (deg >= 1) ret[0] = T(1);
+            ret.fix();
             return ret;
         }
         for (int i = 0; i < n; ++i) {
