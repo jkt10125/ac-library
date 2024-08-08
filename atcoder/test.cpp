@@ -1086,7 +1086,12 @@ std::vector<long long> convolution_ll(const std::vector<long long>& a,
 
 #endif  // ATCODER_CONVOLUTION_HPP
 
-#include <bits/stdc++.h>
+#include <vector>
+#include <algorithm>
+#include <math.h>
+
+// Reference: https://ei1333.github.io/luzhiled/snippets/math/formal-power-series.html
+
 namespace atcoder {
 
 template <class T>
@@ -1108,6 +1113,19 @@ struct formal_power_series : std::vector<T> {
     P operator-(const T& r) const { return P(*this) -= r; }
     P operator*(const T& r) const { return P(*this) *= r; }
     P operator/(const T& r) const { return P(*this) /= r; }
+
+    bool operator==(const P &x) const {
+        for (int i = 0; i < int(std::max((*this).size(), x.size())); ++i) {
+            if (i >= int((*this).size()) && x[i] != T()) return false;
+            if (i >= int(x.size()) && (*this)[i] != T()) return false;
+            if (i < int(std::min((*this).size(), x.size()))) {
+                if ((*this)[i] != x[i]) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 
     P& operator+=(const P& r) {
         if (this->size() < r.size()) this->resize(r.size());
@@ -1173,7 +1191,7 @@ struct formal_power_series : std::vector<T> {
 
     P operator>>(int sz) const {
         if (int(this->size()) <= sz) return P();
-        return P(this->begin() + sz, this->end());
+        return P(begin(*this) + sz, end(*this));
     }
 
     P operator<<(int sz) const {
@@ -1212,16 +1230,13 @@ struct formal_power_series : std::vector<T> {
         return P(this->begin(), this->begin() + std::min(int(this->size()), sz));
     }
 
-    P inv(int deg) const {
+    P inv(int deg = -1) const {
         if (deg == 0) return P();
         assert(!this->empty() && (*this)[0] != T(0));
         if (deg == -1) deg = int(this->size());
         P ret({T(1) / (*this)[0]});
         for (int i = 1; i < deg; i *= 2) {
-            auto&& h = (pre(2 * i) * ret).pre(2 * i) >> i;
-            auto&& tmp = (-h * ret).pre(i);
-            ret.insert(ret.end(), tmp.begin(), tmp.end());
-            ret.resize(2 * i);
+            ret *= (-ret * pre(i * 2) + 2).pre(i * 2);
         }
         return ret.pre(deg);
     }
@@ -1324,11 +1339,50 @@ struct formal_power_series : std::vector<T> {
         }
         return ret;
     }
+
+    P manipulate(P x, int deg = -1) const {
+        const int n = int(this->size());
+        if (deg == -1) deg = n;
+        if (deg == 0) return P();
+        if (int(x.size()) == 1) return P{eval(x[0])};
+        const int k = std::min((int)std::sqrt(deg / (std::log2(deg) + 1)) + 1, int(x.size()));
+        const int b = deg / k + 1;
+        const P x2 = x.pre(k), s = *this;
+        std::vector<P> table(n / 2 + 1, P{1});
+        for (int i = 1; i <= n / 2; ++i) {
+            table[i] = (table[i - 1] * x2).pre(deg);
+        }
+        auto f = [&] (auto f, auto l, auto r, int deg) -> P {
+            if (r - l == 1) return P{*l};
+            auto m = l + (r - l) / 2;
+            return f(f, l, m, deg) + (table[m - l] * f(f, m, r, deg)).pre(deg);
+        };
+        P ans = P(), tmp = f(f, s.begin(), s.end(), deg), tmp2 = P{1};
+        P tmp6 = x2.differential();
+        T tmp3 = T(1);
+        int tmp5 = -1;
+        if (tmp6 == P()) {
+            for (int i = 0; i < std::min(b, n); ++i) {
+                ans += (tmp2 * s[i]).pre(deg);
+                tmp2 = (tmp2 * (x - x2)).pre(deg);
+            }
+        } else {
+            while (x2[++tmp5] == T());
+            P tmp4 = (tmp6 >> (tmp5 - 1)).inv(deg);
+            for (int i = 0; i < b; ++i) {
+                ans += (tmp * tmp2).pre(deg) / tmp3;
+                tmp = ((tmp.differential() >> (tmp5 - 1)) * tmp4).pre(deg);
+                tmp2 = (tmp2 * (x - x2)).pre(deg);
+                tmp3 *= T(i + 1);
+            }
+        }
+        return ans;
+    }
 };
 
 } // namespace atcoder
 
-#endif
+#endif  // ATCODER_FORMAL_POWER_SERIES_HPP
 
 
 using comb = atcoder::combinatorics<998244353>;
@@ -1346,26 +1400,23 @@ signed main() {
 
     int n;
     std::cin >> n;
-    FPS fps(1, 1);
-
-    while (n--) {
-        int m;
-        std::cin >> m;
-        std::vector<comb> A(m + 1);
-        for (int i = 0, x; i <= m; i++) {
-            std::cin >> x;
-            A[i] = x;
+    std::vector<comb> A(n);
+    for (int i = 0, x; i < n; i++) {
+        std::cin >> x;
+        A[i] = x;
+    }
+    FPS fps(A.begin(), A.end());
+    auto v = fps.sqrt(n);
+    
+    if (v.empty()) {
+        std::cout << -1 << std::endl;
+    }
+    else {
+        for (auto& it : v) {
+            std::cout << it.val() << ' ';
         }
-        FPS tmp(A.begin(), A.end());
-        fps *= tmp;
+        std::cout << std::endl;
     }
-
-    fps.resize(n);
-
-    for (auto it : fps) {
-        std::cout << it.val() << ' ';
-    }
-    std::cout << std::endl;
 
     return 0;
 }

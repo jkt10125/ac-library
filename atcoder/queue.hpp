@@ -1,9 +1,9 @@
 #ifndef ATCODER_QUEUE_HPP
 #define ATCODER_QUEUE_HPP 1
 
-#include <array>
-
 #include "stack.hpp"
+
+#include <array>
 
 namespace atcoder {
 

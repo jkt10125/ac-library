@@ -1,14 +1,14 @@
 #ifndef ATCODER_MINCOSTFLOW_HPP
 #define ATCODER_MINCOSTFLOW_HPP 1
 
+#include "internal_csr.hpp"
+#include "internal_queue.hpp"
+
 #include <algorithm>
 #include <cassert>
 #include <limits>
 #include <queue>
 #include <vector>
-
-#include "internal_csr.hpp"
-#include "internal_queue.hpp"
 
 namespace atcoder {
 

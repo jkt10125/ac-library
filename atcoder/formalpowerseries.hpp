@@ -1,13 +1,14 @@
 #ifndef ATCODER_FORMAL_POWER_SERIES_HPP
 #define ATCODER_FORMAL_POWER_SERIES_HPP 1
 
-// Reference: https://ei1333.github.io/luzhiled/snippets/math/formal-power-series.html
+#include "combinatorics.hpp"
+#include "convolution.hpp"
 
 #include <vector>
 #include <algorithm>
+#include <math.h>
 
-#include "combinatorics.hpp"
-#include "convolution.hpp"
+// Reference: https://ei1333.github.io/luzhiled/snippets/math/formal-power-series.html
 
 namespace atcoder {
 
@@ -31,6 +32,19 @@ struct formal_power_series : std::vector<T> {
     P operator*(const T& r) const { return P(*this) *= r; }
     P operator/(const T& r) const { return P(*this) /= r; }
 
+    bool operator==(const P &x) const {
+        for (int i = 0; i < int(std::max((*this).size(), x.size())); ++i) {
+            if (i >= int((*this).size()) && x[i] != T()) return false;
+            if (i >= int(x.size()) && (*this)[i] != T()) return false;
+            if (i < int(std::min((*this).size(), x.size()))) {
+                if ((*this)[i] != x[i]) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     P& operator+=(const P& r) {
         if (this->size() < r.size()) this->resize(r.size());
         for (int i = 0; i < int(r.size()); ++i) (*this)[i] += r[i];
@@ -44,7 +58,7 @@ struct formal_power_series : std::vector<T> {
     }
 
     P& operator*=(const P& r) {
-        auto&& tmp = convolution(*this, r);
+        auto tmp = convolution(*this, r);
         *this = P(tmp.begin(), tmp.end());
         return *this;
     }
@@ -95,7 +109,7 @@ struct formal_power_series : std::vector<T> {
 
     P operator>>(int sz) const {
         if (int(this->size()) <= sz) return P();
-        return P(this->begin() + sz, this->end());
+        return P(begin(*this) + sz, end(*this));
     }
 
     P operator<<(int sz) const {
@@ -134,16 +148,13 @@ struct formal_power_series : std::vector<T> {
         return P(this->begin(), this->begin() + std::min(int(this->size()), sz));
     }
 
-    P inv(int deg) const {
+    P inv(int deg = -1) const {
         if (deg == 0) return P();
         assert(!this->empty() && (*this)[0] != T(0));
         if (deg == -1) deg = int(this->size());
         P ret({T(1) / (*this)[0]});
         for (int i = 1; i < deg; i *= 2) {
-            auto&& h = (pre(2 * i) * ret).pre(2 * i) >> i;
-            auto&& tmp = (-h * ret).pre(i);
-            ret.insert(ret.end(), tmp.begin(), tmp.end());
-            ret.resize(2 * i);
+            ret *= (-ret * pre(i * 2) + 2).pre(i * 2);
         }
         return ret.pre(deg);
     }
@@ -153,6 +164,19 @@ struct formal_power_series : std::vector<T> {
         assert(!this->empty() && (*this)[0] == T(1));
         if (len == -1) len = int(this->size());
         return (differential() * inv(len)).pre(len - 1).integral();
+    }
+
+    T coefficient(int i) const {
+        return ((0 <= i) && (i < int(this->size()))) ? (*this)[i] : T(0);
+    }
+
+    bool has_sqrt() const {
+        if (empty()) return true;
+        int low_deg = 0;
+        while (coefficient(low_deg) == T(0)) ++low_deg;
+        if (low_deg % 2 == 1) return false;
+        T y = coefficient(low_deg);
+        return (y.val() == 0) || (y.pow(T(-1) / T(2)).val() == 1);
     }
 
     P sqrt(int deg = -1) const {
@@ -246,8 +270,47 @@ struct formal_power_series : std::vector<T> {
         }
         return ret;
     }
+
+    P manipulate(P x, int deg = -1) const {
+        const int n = int(this->size());
+        if (deg == -1) deg = n;
+        if (deg == 0) return P();
+        if (int(x.size()) == 1) return P{eval(x[0])};
+        const int k = std::min((int)std::sqrt(deg / (std::log2(deg) + 1)) + 1, int(x.size()));
+        const int b = deg / k + 1;
+        const P x2 = x.pre(k), s = *this;
+        std::vector<P> table(n / 2 + 1, P{1});
+        for (int i = 1; i <= n / 2; ++i) {
+            table[i] = (table[i - 1] * x2).pre(deg);
+        }
+        auto f = [&] (auto f, auto l, auto r, int deg) -> P {
+            if (r - l == 1) return P{*l};
+            auto m = l + (r - l) / 2;
+            return f(f, l, m, deg) + (table[m - l] * f(f, m, r, deg)).pre(deg);
+        };
+        P ans = P(), tmp = f(f, s.begin(), s.end(), deg), tmp2 = P{1};
+        P tmp6 = x2.differential();
+        T tmp3 = T(1);
+        int tmp5 = -1;
+        if (tmp6 == P()) {
+            for (int i = 0; i < std::min(b, n); ++i) {
+                ans += (tmp2 * s[i]).pre(deg);
+                tmp2 = (tmp2 * (x - x2)).pre(deg);
+            }
+        } else {
+            while (x2[++tmp5] == T());
+            P tmp4 = (tmp6 >> (tmp5 - 1)).inv(deg);
+            for (int i = 0; i < b; ++i) {
+                ans += (tmp * tmp2).pre(deg) / tmp3;
+                tmp = ((tmp.differential() >> (tmp5 - 1)) * tmp4).pre(deg);
+                tmp2 = (tmp2 * (x - x2)).pre(deg);
+                tmp3 *= T(i + 1);
+            }
+        }
+        return ans;
+    }
 };
 
 } // namespace atcoder
 
-#endif
+#endif  // ATCODER_FORMAL_POWER_SERIES_HPP

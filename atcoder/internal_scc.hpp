@@ -1,13 +1,14 @@
 #ifndef ATCODER_INTERNAL_SCC_HPP
 #define ATCODER_INTERNAL_SCC_HPP 1
 
+#include "internal_csr.hpp"
+
 #include <algorithm>
 #include <utility>
 #include <vector>
 
-#include "internal_csr.hpp"
-
 namespace atcoder {
+    
 namespace internal {
 
 // Reference:

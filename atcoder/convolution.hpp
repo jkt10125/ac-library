@@ -1,14 +1,14 @@
 #ifndef ATCODER_CONVOLUTION_HPP
 #define ATCODER_CONVOLUTION_HPP 1
 
+#include "internal_bit.hpp"
+#include "modint.hpp"
+
 #include <algorithm>
 #include <array>
 #include <cassert>
 #include <type_traits>
 #include <vector>
-
-#include "internal_bit.hpp"
-#include "modint.hpp"
 
 namespace atcoder {
 

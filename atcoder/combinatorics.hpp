@@ -1,9 +1,9 @@
 #ifndef ATCODER_COMBINATORICS_HPP
 #define ATCODER_COMBINATORICS_HPP 1
 
-#include <algorithm>
-
 #include "modint.hpp"
+
+#include <algorithm>
 
 namespace atcoder {
 
@@ -17,6 +17,7 @@ struct combinatorics : static_modint<m> {
     template <class T> combinatorics(T v) : mint(v) { }
 
     mint inv() const {
+        assert(mint::val() != 0);
         if (mint::val() < preprocess_limit) {
             preprocess(mint::val());
             return _inv[mint::val()];
@@ -32,6 +33,33 @@ struct combinatorics : static_modint<m> {
     mint fact_inv() const {
         preprocess(mint::val());
         return _ifact[mint::val()];
+    }
+
+    // Explicitly needed to create those static functions 
+    // because the struct does not allow negative data 
+    // processing (the value is stored in _v (unsigned int))
+
+    static mint inv(int x) {
+        if (x < 0) return 0;
+        return combinatorics(x).inv();        
+    }
+
+    static mint fact(int x) {
+        if (x < 0) return 0;
+        return combinatorics(x).fact();
+    }
+
+    static mint fact_inv(int x) {
+        if (x < 0) return 0;
+        return combinatorics(x).fact_inv();
+    }
+
+    static mint P(int n, int r) {
+        return fact(n) * fact_inv(n - r);
+    }
+
+    static mint C(int n, int r) {
+        return P(n, r) * fact_inv(r);
     }
     
     // sqrt algorithm by Tonelli and Shanks
@@ -85,13 +113,13 @@ struct combinatorics : static_modint<m> {
 
 } // namespace atcoder
 
-#endif
+#endif  // ATCODER_COMBINATORICS_HPP
 
 // DO NOT FORGET TO INITIALIZE THE STATIC VARIABLES
 
-using comb = atcoder::combinatorics<998244353>;
+// using comb = atcoder::combinatorics<998244353>;
 
-template<> std::vector<unsigned int> comb::_fact = {1};
-template<> std::vector<unsigned int> comb::_ifact = {1};
-template<> std::vector<unsigned int> comb::_inv = {1};
-template<> unsigned int comb::processed_until = 0;
+// template<> std::vector<unsigned int> comb::_fact = {1};
+// template<> std::vector<unsigned int> comb::_ifact = {1};
+// template<> std::vector<unsigned int> comb::_inv = {1};
+// template<> unsigned int comb::processed_until = 0;

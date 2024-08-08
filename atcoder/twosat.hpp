@@ -1,10 +1,10 @@
 #ifndef ATCODER_TWOSAT_HPP
 #define ATCODER_TWOSAT_HPP 1
 
+#include "internal_scc.hpp"
+
 #include <cassert>
 #include <vector>
-
-#include "internal_scc.hpp"
 
 namespace atcoder {
 

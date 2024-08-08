@@ -1,12 +1,12 @@
 #ifndef ATCODER_MATH_HPP
 #define ATCODER_MATH_HPP 1
 
+#include "internal_math.hpp"
+
 #include <algorithm>
 #include <cassert>
 #include <tuple>
 #include <vector>
-
-#include "internal_math.hpp"
 
 namespace atcoder {
 

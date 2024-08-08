@@ -1,11 +1,11 @@
 #ifndef ATCODER_SCC_HPP
 #define ATCODER_SCC_HPP 1
 
+#include "internal_scc.hpp"
+
 #include <algorithm>
 #include <cassert>
 #include <vector>
-
-#include "internal_scc.hpp"
 
 namespace atcoder {
 

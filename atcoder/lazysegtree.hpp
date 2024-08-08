@@ -1,12 +1,12 @@
 #ifndef ATCODER_LAZYSEGTREE_HPP
 #define ATCODER_LAZYSEGTREE_HPP 1
 
+#include "internal_bit.hpp"
+
 #include <algorithm>
 #include <cassert>
 #include <functional>
 #include <vector>
-
-#include "internal_bit.hpp"
 
 namespace atcoder {
 

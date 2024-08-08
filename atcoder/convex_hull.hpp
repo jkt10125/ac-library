@@ -1,10 +1,10 @@
 #ifndef ATCODER_CONVEX_HULL_HPP
 #define ATCODER_CONVEX_HULL_HPP 1
 
+#include "point.hpp"
+
 #include <vector>
 #include <algorithm>
-
-#include "point.hpp"
 
 namespace atcoder {
 

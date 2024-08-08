@@ -92,4 +92,4 @@ std::vector<int> topo_sort(const std::vector<std::vector<int>>& A) {
 
 }  // namespace atcoder
 
-#endif
+#endif  // ATCODER_MISC_ALGO_HPP
