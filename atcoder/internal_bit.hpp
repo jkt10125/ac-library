@@ -22,7 +22,7 @@ using std::bit_ceil;
 // @return same with std::bit::bit_ceil
 unsigned int bit_ceil(unsigned int n) {
     unsigned int x = 1;
-    while (x < (unsigned int)(n)) x *= 2;
+    while (x < n) x *= 2;
     return x;
 }
 

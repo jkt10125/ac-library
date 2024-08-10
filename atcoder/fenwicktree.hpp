@@ -5,6 +5,7 @@
 
 #include <cassert>
 #include <vector>
+#include <array>
 
 namespace atcoder {
 
@@ -13,34 +14,36 @@ template <class T> struct fenwick_tree {
     using U = internal::to_unsigned_t<T>;
 
   public:
-    fenwick_tree() : _n(0) {}
-    explicit fenwick_tree(int n) : _n(n), data(n) {}
+    fenwick_tree() = default;
+    explicit fenwick_tree(int n) : d(n + 1, {U(), U()}) {}
 
-    void add(int p, T x) {
-        assert(0 <= p && p < _n);
-        p++;
-        while (p <= _n) {
-            data[p - 1] += U(x);
-            p += p & -p;
-        }
+    void range_add(int l, int r, T x) {
+        assert(0 <= l && l <= r && r < int(d.size()));
+        set(l, U(x)), set(r + 1, U(-x));
     }
 
-    T sum(int l, int r) {
-        assert(0 <= l && l <= r && r <= _n);
-        return sum(r) - sum(l);
+    T range_sum(int l, int r) const {
+        assert(0 <= l && l <= r && r < int(d.size()));
+        return T(get(r + 1) - get(l));
     }
 
   private:
-    int _n;
-    std::vector<U> data;
+    std::vector<std::array<U, 2>> d;
 
-    U sum(int r) {
-        U s = 0;
-        while (r > 0) {
-            s += data[r - 1];
-            r -= r & -r;
+    void set(int i, U x) {
+        for (int j = i + 1; j <= int(d.size()); j += j & -j) {
+            d[j - 1][0] += x;
+            d[j - 1][1] += x * i;
         }
-        return s;
+    }
+
+    U get(int i) const {
+        U s0{}, s1{};
+        for (int j = i + 1; j; j -= j & -j) {
+            s0 += d[j - 1][0];
+            s1 += d[j - 1][1];
+        }
+        return s0 * i - s1;
     }
 };
 
