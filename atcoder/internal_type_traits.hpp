@@ -2,6 +2,7 @@
 #define ATCODER_INTERNAL_TYPE_TRAITS_HPP 1
 
 #include <cassert>
+#include <iterator>
 #include <numeric>
 #include <type_traits>
 
@@ -91,6 +92,36 @@ template <class T>
 using is_unsigned_int_t = std::enable_if_t<is_unsigned_int<T>::value>;
 
 template <class T> using to_unsigned_t = typename to_unsigned<T>::type;
+
+template <class T>
+using is_truely_char = 
+    typename std::conditional<std::is_same<T, char>::value ||
+                                  std::is_same<T, char16_t>::value ||
+                                  std::is_same<T, char32_t>::value ||
+                                  std::is_same<T, wchar_t>::value,
+                              std::true_type,
+                              std::false_type>::type;
+
+template <class T>
+using is_truely_integral = 
+    typename std::conditional<is_integral<T>::value &&
+                                  !is_truely_char<T>::value,
+                              std::true_type,
+                              std::false_type>::type;
+
+// Base template for checking if a type is iterable
+template<class T>
+auto is_iterable_impl(int) -> decltype(
+    std::begin(std::declval<T&>()) != std::end(std::declval<T&>()), // Ensure begin/end work
+    void(), // Discard the result, focus on the validity of the operation
+    std::true_type{});
+
+template<class T>
+std::false_type is_iterable_impl(...);
+
+template<class T>
+struct is_iterable : decltype(is_iterable_impl<T>(0)) {};
+
 
 }  // namespace internal
 
