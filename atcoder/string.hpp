@@ -334,10 +334,10 @@ std::vector<int> manacher(const std::string& s) {
 // Reference:
 // https://codeforces.com/blog/entry/12145?#comment-168098
 
-struct SingleHash {
+struct single_hash {
 
   public:
-    SingleHash(const std::string& s, int base = 153, int _mod = 1000000009) : mod(_mod) {
+    single_hash(const std::string& s, int base = 153, int _mod = 1000000009) : mod(_mod) {
         int n = s.size();
         suf.assign(n + 1, 0); // suf[n] = 0
         b.assign(n + 1, 1);
