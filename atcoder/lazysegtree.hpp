@@ -4,6 +4,7 @@
 #include "internal_bit.hpp"
 
 #include <vector>
+#include <functional>
 #include <type_traits>
 
 namespace atcoder {
@@ -15,7 +16,7 @@ struct Tag {
     Tag(int x) { }
     void apply(const Tag &t) { }
     bool operator == (const Tag &t) { }
-    // Always return true in the == operator if you do not want lazy propagation
+    // return true in the == operator if you do not want lazy propagation
 };
 
 struct Info {
@@ -34,30 +35,24 @@ struct lazysegtree {
 
     lazysegtree(unsigned int N) : n(internal::bit_ceil(N)), tree(2 * n), lazy(2 * n) { }
 
-    void pointUpdate(int idx, const Info &x) {
-        pointUpdate(idx, x, 1, 0, n - 1);
+    void point_update(int idx, const Info &x) {
+        point_update(idx, x, 1, 0, n - 1);
     }
     
-    void rangeUpdate(int L, int R, const Tag &t) {
-        rangeUpdate(L, R, t, 1, 0, n - 1);
+    void range_update(int L, int R, const Tag &t) {
+        range_update(L, R, t, 1, 0, n - 1);
     }
 
-    Info rangeQuery(int L, int R) {
-        return rangeQuery(L, R, 1, 0, n - 1);
+    Info range_query(int L, int R) {
+        return range_query(L, R, 1, 0, n - 1);
     }
 
-    template <typename F>
-    int findFirst(int L, int R, F pred) {
-        return findFirst(L, R, pred, 1, 0, n - 1);
+    unsigned int min_left(int L, int R, std::function<bool(Info)> pred) {
+        return min_left(L, R, pred, 1, 0, n - 1);
     }
 
-    template <typename F>
-    int findLast(int L, int R, F pred) {
-        return findLast(L, R, pred, 1, 0, n - 1);
-    }
-
-    int findKth(int L, int R, int k) {
-        return findKth(L, R, k, 1, 0, n - 1);
+    unsigned int max_right(int L, int R, std::function<bool(Info)> pred) {
+        return max_right(L, R, pred, 1, 0, n - 1);
     }
 
   private:
@@ -78,7 +73,7 @@ struct lazysegtree {
         tree[node] = Info::merge(tree[2 * node], tree[2 * node + 1]);
     }
 
-    void pointUpdate(unsigned int idx, const Info &x, 
+    void point_update(unsigned int idx, const Info &x, 
                      unsigned int node, unsigned int l, unsigned int r) {
         if (l == r) {
             tree[node] = x;
@@ -86,12 +81,12 @@ struct lazysegtree {
         }
         unsigned int m = (l + r) / 2;
         push(node, r - l + 1);
-        if (m < idx) pointUpdate(idx, x, 2 * node + 1, m + 1, r);
-        else pointUpdate(idx, x, 2 * node, l, m);
+        if (m < idx) point_update(idx, x, 2 * node + 1, m + 1, r);
+        else point_update(idx, x, 2 * node, l, m);
         pull(node);
     }
 
-    void rangeUpdate(unsigned int L, unsigned int R, const Tag &t, 
+    void range_update(unsigned int L, unsigned int R, const Tag &t, 
                      unsigned int node, unsigned int l, unsigned int r) {
         if (r < L || R < l) return;
         if (L <= l && r <= R) {
@@ -100,12 +95,12 @@ struct lazysegtree {
         }
         unsigned int m = (l + r) / 2;
         push(node, r - l + 1);
-        rangeUpdate(L, R, t, 2 * node, l, m);
-        rangeUpdate(L, R, t, 2 * node + 1, m + 1, r);
+        range_update(L, R, t, 2 * node, l, m);
+        range_update(L, R, t, 2 * node + 1, m + 1, r);
         pull(node);
     }
 
-    Info rangeQuery(unsigned int L, unsigned int R, 
+    Info range_query(unsigned int L, unsigned int R, 
                     unsigned int node, unsigned int l, unsigned int r) {
         if (r < L || R < l) return Info::identity();
         if (L <= l && r <= R) {
@@ -113,46 +108,31 @@ struct lazysegtree {
         }
         unsigned int m = (l + r) / 2;
         push(node, r - l + 1);
-        return Info::merge(rangeQuery(L, R, 2 * node, l, m), rangeQuery(L, R, 2 * node + 1, m + 1, r));
+        return Info::merge(range_query(L, R, 2 * node, l, m), range_query(L, R, 2 * node + 1, m + 1, r));
     }
 
-    template <typename F>
-    unsigned int findFirst(unsigned int L, unsigned int R, F pred, 
+    unsigned int min_left(unsigned int L, unsigned int R, std::function<bool(Info)> pred, 
                            unsigned int node, unsigned int l, unsigned int r) {
-        if (r < L || R < l || !pred(node)) return unsigned(-1);
+        if (r < L || R < l || !pred(tree[node])) return (unsigned int)(-1);
         if (l == r) return l;
         unsigned int m = (l + r) / 2;
         push(node, r - l + 1);
-        unsigned int res = findFirst(L, R, pred, 2 * node, l, m);
-        if (res == unsigned(-1)) {
-            res = findFirst(L, R, pred, 2 * node + 1, m + 1, r);
+        unsigned int res = min_left(L, R, pred, 2 * node, l, m);
+        if (res == (unsigned int)(-1)) {
+            res = min_left(L, R, pred, 2 * node + 1, m + 1, r);
         }
         return res;
     }
 
-    template <typename F>
-    unsigned int findLast(unsigned int L, unsigned int R, F pred, 
+    unsigned int max_right(unsigned int L, unsigned int R, std::function<bool(Info)> pred, 
                           unsigned int node, unsigned int l, unsigned int r) {
-        if (r < L || R < l || !pred(node)) return unsigned(-1);
+        if (r < L || R < l || !pred(tree[node])) return (unsigned int)(-1);
         if (l == r) return l;
         unsigned int m = (l + r) / 2;
         push(node, r - l + 1);
-        unsigned int res = findLast(L, R, pred, 2 * node + 1, m + 1, r);
-        if (res == unsigned(-1)) {
-            res = findLast(L, R, pred, 2 * node, l, m);
-        }
-        return res;
-    }
-
-    unsigned int findKth(unsigned int L, unsigned int R, unsigned int k, 
-                         unsigned int node, unsigned int l, unsigned int r) {
-        if (r < L || R < l || tree[node].cnt < k) return unsigned(-1);
-        if (l == r) return l;
-        int m = (l + r) / 2;
-        push(node, r - l + 1);
-        int res = findKth(L, R, k, 2 * node, l, m);
-        if (res == unsigned(-1)) {
-            res = findKth(L, R, k - tree[2 * node].cnt, 2 * node + 1, m + 1, r);
+        unsigned int res = max_right(L, R, pred, 2 * node + 1, m + 1, r);
+        if (res == (unsigned int)(-1)) {
+            res = max_right(L, R, pred, 2 * node, l, m);
         }
         return res;
     }
