@@ -24,7 +24,7 @@ template <class S, S (*op)(S, S), S (*e)()> struct segtree {
     explicit segtree(unsigned int N) : segtree(std::vector<S>(N, e())) {}
     explicit segtree(const std::vector<S> &v) : size(v.size()), n(internal::bit_ceil(v.size())), d(2 * n, e()) {
         std::copy(v.begin(), v.end(), d.begin() + n);
-        for (int i = n - 1; i; i--) {
+        for (unsigned int i = n - 1; i; i--) {
             pull(i);
         }
     }
@@ -92,7 +92,7 @@ template <class S, S (*op)(S, S), S (*e)()> struct segtree {
 
   private:
 
-    unsigned int n, size;
+    unsigned int size, n;
     std::vector<S> d;
 
     void pull(unsigned int node) {
