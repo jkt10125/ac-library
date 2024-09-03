@@ -4,24 +4,11 @@
 #include <vector>
 #include <array>
 #include <functional>
+#include <cassert>
 
 namespace atcoder {
 
-// op should be idempotant function
-
-#if __cplusplus >= 201703L
-
-template <class S, auto op, auto e> struct treeancestor_op {
-    static_assert(std::is_convertible_v<decltype(op), std::function<S(S, S)>>,
-                  "op must work as S(S, S)");
-    static_assert(std::is_convertible_v<decltype(e), std::function<S()>>,
-                  "e must work as S()");
-
-#else
-
 template <class S, S (*op)(S, S), S (*e)()> struct treeancestor_op {
-
-#endif
 
   public:
     
@@ -40,9 +27,11 @@ template <class S, S (*op)(S, S), S (*e)()> struct treeancestor_op {
         _n = par.size();
         int root = 0;
         while (root < _n && par[root] != -1) { root++; }
-        // static_assert(root < _n, "root not found");
-        // for (int i = root + 1; i < _n; i++) 
-        //     static_assert(par[i] != -1, "multiple roots found");
+        
+        assert(root < _n);
+        for (int i = root + 1; i < _n; i++) 
+            assert(par[i] != -1);
+
         std::vector<std::vector<std::pair<int, S>>> A(_n);
         for (int i = 0; i < _n; i++) {
             if (i == root) continue;

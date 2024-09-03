@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <functional>
+#include <cassert>
 #include <type_traits>
 
 namespace atcoder {
@@ -35,23 +36,28 @@ struct lazysegtree {
 
     lazysegtree(unsigned int N) : n(internal::bit_ceil(N)), tree(2 * n), lazy(2 * n) { }
 
-    void point_update(int idx, const Info &x) {
+    void point_update(unsigned int idx, const Info &x) {
+        assert(0 <= idx && idx < n);
         point_update(idx, x, 1, 0, n - 1);
     }
     
-    void range_update(int L, int R, const Tag &t) {
+    void range_update(unsigned int L, unsigned int R, const Tag &t) {
+        assert(0 <= L && L <= R && R < n);
         range_update(L, R, t, 1, 0, n - 1);
     }
 
-    Info range_query(int L, int R) {
+    Info range_query(unsigned int L, unsigned int R) {
+        assert(0 <= L && L <= R && R < n);
         return range_query(L, R, 1, 0, n - 1);
     }
 
-    unsigned int min_left(int L, int R, std::function<bool(Info)> pred) {
+    unsigned int min_left(unsigned int L, unsigned int R, std::function<bool(Info)> pred) {
+        assert(0 <= L && L <= R && R < n);
         return min_left(L, R, pred, 1, 0, n - 1);
     }
 
-    unsigned int max_right(int L, int R, std::function<bool(Info)> pred) {
+    unsigned int max_right(unsigned int L, unsigned int R, std::function<bool(Info)> pred) {
+        assert(0 <= L && L <= R && R < n);
         return max_right(L, R, pred, 1, 0, n - 1);
     }
 
@@ -74,7 +80,7 @@ struct lazysegtree {
     }
 
     void point_update(unsigned int idx, const Info &x, 
-                     unsigned int node, unsigned int l, unsigned int r) {
+                      unsigned int node, unsigned int l, unsigned int r) {
         if (l == r) {
             tree[node] = x;
             return;
@@ -87,7 +93,7 @@ struct lazysegtree {
     }
 
     void range_update(unsigned int L, unsigned int R, const Tag &t, 
-                     unsigned int node, unsigned int l, unsigned int r) {
+                      unsigned int node, unsigned int l, unsigned int r) {
         if (r < L || R < l) return;
         if (L <= l && r <= R) {
             apply(node, t, r - l + 1);
@@ -101,7 +107,7 @@ struct lazysegtree {
     }
 
     Info range_query(unsigned int L, unsigned int R, 
-                    unsigned int node, unsigned int l, unsigned int r) {
+                     unsigned int node, unsigned int l, unsigned int r) {
         if (r < L || R < l) return Info::identity();
         if (L <= l && r <= R) {
             return tree[node];
@@ -112,7 +118,7 @@ struct lazysegtree {
     }
 
     unsigned int min_left(unsigned int L, unsigned int R, std::function<bool(Info)> pred, 
-                           unsigned int node, unsigned int l, unsigned int r) {
+                          unsigned int node, unsigned int l, unsigned int r) {
         if (r < L || R < l || !pred(tree[node])) return (unsigned int)(-1);
         if (l == r) return l;
         unsigned int m = (l + r) / 2;
@@ -125,7 +131,7 @@ struct lazysegtree {
     }
 
     unsigned int max_right(unsigned int L, unsigned int R, std::function<bool(Info)> pred, 
-                          unsigned int node, unsigned int l, unsigned int r) {
+                           unsigned int node, unsigned int l, unsigned int r) {
         if (r < L || R < l || !pred(tree[node])) return (unsigned int)(-1);
         if (l == r) return l;
         unsigned int m = (l + r) / 2;

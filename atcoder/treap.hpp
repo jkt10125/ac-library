@@ -74,6 +74,7 @@ struct treap {
         unsigned int cnt, pri, left, right;
         bool rev;
     };
+
     std::vector<node> d;
     std::vector<unsigned int> del;
     unsigned int root;
@@ -115,12 +116,12 @@ struct treap {
         if (!id) return void(l = r = 0);
         push(id);
         if (d[d[id].left].cnt < k) {
-            split(d[id].right, d[id].right, r, k - d[d[id].left].cnt - 1);
             l = id;
+            split(d[id].right, d[id].right, r, k - d[d[id].left].cnt - 1);
         }
         else {
-            split(d[id].left, l, d[id].left, k);
             r = id;
+            split(d[id].left, l, d[id].left, k);
         }
         update_cnt(id);
     }
