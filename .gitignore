@@ -1,5 +1,5 @@
 build
-
+.vscode
 *.html
 !tools/*.html
 tools/ac-library.zip

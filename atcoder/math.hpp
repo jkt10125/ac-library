@@ -96,6 +96,41 @@ long long floor_sum(long long n, long long m, long long a, long long b) {
     return ans + internal::floor_sum_unsigned(n, m, a, b);
 }
 
+
+bool is_prime(unsigned long long n) {
+    if (n == 2 || n == 7 || n == 61) return true;
+    if (n == 1 || n % 2 == 0) return false;
+    if (n < 4759123141ULL) return internal::miller_rabin(n, {2, 7, 61});
+    if (n < 1122004669633ULL) return internal::miller_rabin(n, {2, 13, 23, 1662803});
+    return internal::miller_rabin(n, {2, 325, 9375, 28178, 450775, 9780504, 1795265022});
+}
+
+unsigned long long find_factor(unsigned long long n) {
+    if (is_prime(n)) return n;
+    unsigned long long factor = internal::pollard_rho(n);
+    while (factor == n) factor = internal::pollard_rho(n);
+    return factor;
+}
+
 }  // namespace atcoder
+
+
+/* ---------- Prime Precomputation ---------- */
+// const int N = 10000007;
+// const int p_N = 664579;
+
+// int spf[N], prime[p_N], prime_cnt;
+
+// void sieve() {
+//     for (int i = 2; i < N; i++) {
+//         if (!spf[i]) {
+//             spf[i] = prime[prime_cnt++] = i;
+//         }
+//         for (int j = 0; j < prime_cnt && prime[j] <= spf[i] && i * prime[j] < N; j++) {
+//             spf[i * prime[j]] = prime[j];
+//         }
+//     }
+// }
+/* ------------------------------------------ */
 
 #endif  // ATCODER_MATH_HPP

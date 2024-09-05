@@ -1,7 +1,10 @@
 #ifndef ATCODER_INTERNAL_MATH_HPP
 #define ATCODER_INTERNAL_MATH_HPP 1
 
+#include "random.hpp"
+
 #include <utility>
+#include <algorithm>
 
 #ifdef _MSC_VER
 #include <intrin.h>
@@ -203,6 +206,109 @@ unsigned long long floor_sum_unsigned(unsigned long long n,
         std::swap(m, a);
     }
     return ans;
+}
+
+struct Montgomery {
+    unsigned long long n, nr;
+    
+    constexpr Montgomery(unsigned long long n) : n(n), nr(1) {
+        // log(64) = 6
+        for (int i = 0; i < 6; i++) {
+            nr *= 2 - n * nr;
+        }
+    }
+
+    constexpr unsigned long long reduce(unsigned __int128 x) const {
+        unsigned long long q = (unsigned long long)(x) * nr;
+        unsigned long long m = ((unsigned __int128)q * n) >> 64;
+        return (x >> 64) + n - m;
+        // returns a number in the [0, 2 * n - 2] range
+        // (add a "x < n ? x : x - n" type of check if you need a proper modulo)
+    }
+
+    constexpr unsigned long long multiply(unsigned long long x, unsigned long long y) const {
+        return reduce((unsigned __int128)x * y);
+    }
+
+    constexpr unsigned long long transform(unsigned long long x) const {
+        return ((unsigned __int128)(x) << 64) % n;
+        // can also be implemented as multiply(x, r^2 mod n)
+    }
+
+    constexpr unsigned long long pow(unsigned long long a, unsigned long long b) const {
+        unsigned long long r = transform(1);
+        a = transform(a);
+
+        for (int i = 0; i < 64; i++) {
+            if (b >> i & 1) {
+                r = multiply(r, a);
+            }
+            a = multiply(a, a);
+        }
+        return r;
+    }
+
+    inline constexpr unsigned long long norm(unsigned long long x) const {
+        return x < n ? x : x - n;
+    }
+};
+
+bool miller_rabin(unsigned long long n, const std::initializer_list<unsigned long long> &base) {
+    Montgomery mont_space(n);
+    return std::all_of(base.begin(), base.end(), [n, mont_space](unsigned long long a) {
+        if (n <= a) return true;
+        unsigned int e = (unsigned int)__builtin_ctzll(n - 1);
+        unsigned long long z = mont_space.pow(a, (n - 1) >> e);
+        unsigned long long norm_z = mont_space.norm(mont_space.reduce(z));
+        if (norm_z == 1 || norm_z == n - 1) return true;
+        while (--e) {
+            z = mont_space.multiply(z, z);
+            norm_z = mont_space.norm(mont_space.reduce(z));
+            if (norm_z == 1) return false;
+            if (norm_z == n - 1) return true;
+        }
+        return false;
+    });
+}
+
+unsigned long long binary_gcd(unsigned long long a, unsigned long long b) {
+    if (a == 0 || b == 0) return a + b;
+    int shift = __builtin_ctzll(a | b);
+    a >>= __builtin_ctzll(a);
+    do {
+        b >>= __builtin_ctzll(b);
+        if (a > b) std::swap(a, b);
+        b -= a;
+    } while (b);
+    return a << shift;
+}
+
+unsigned long long unsigned_abs(unsigned long long a, unsigned long long b) {
+    return a < b ? b - a : a - b;
+}
+
+unsigned long long pollard_rho(unsigned long long n) {
+    Montgomery mont_space(n);
+    if (n % 2 == 0) return 2;
+    unsigned long long x = rand_int64(0, n);
+    for (unsigned int l = 128;;l <<= 1) {
+        unsigned long long y = x;
+        for (unsigned int i = 0; i < l; i += 128) {
+            unsigned long long z = x, p = 1;
+            for (unsigned int j = 0; j < 128; j++) {
+                x = mont_space.multiply(x, x) + 1;
+                p = mont_space.multiply(p, unsigned_abs(x, y));
+            }
+            if (binary_gcd(p, n) != 1) {
+                for (unsigned int j = 0; j < 128; j++) {
+                    z = mont_space.multiply(z, z) + 1;
+                    auto g = binary_gcd(mont_space.norm(unsigned_abs(z, y)), n);
+                    if (g != 1) return g;
+                }
+            }
+        }
+    }
+    return n;
 }
 
 }  // namespace internal
