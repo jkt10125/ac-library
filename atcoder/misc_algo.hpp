@@ -90,6 +90,23 @@ std::vector<int> topo_sort(const std::vector<std::vector<int>>& A) {
     return ret;
 }
 
+long long tsp(const std::vector<std::vector<long long>>& G) {
+    unsigned int n = G.size();
+    std::vector<std::vector<long long>> dp(1 << n, std::vector<long long>(n, 1LL << 60));
+    dp[1][0] = 0;
+    for (int S = 1; S < (1 << n); S += 2) {
+        for (int v = 0; v < n; v++) {
+            if (!(S >> v & 1)) continue;
+            for (int u = 0; u < n; u++) {
+                if (S >> u & 1) {
+                    dp[S][v] = std::min(dp[S][v], dp[S ^ (1 << v)][u] + G[u][v]);
+                }
+            }
+        }
+    }
+    return dp[(1 << n) - 1][0];
+}
+
 }  // namespace atcoder
 
 #endif  // ATCODER_MISC_ALGO_HPP
