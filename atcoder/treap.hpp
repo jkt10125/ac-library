@@ -4,24 +4,42 @@
 #include <vector>
 #include <iostream>
 
+#ifdef COMMENT
+
+struct Tag {
+    Tag() { }
+    Tag(int x) { }
+    void apply(const Tag &t) { }
+    bool operator == (const Tag &t) { }
+    // return true in the == operator if you do not want lazy propagation
+};
+
+struct Info {
+    Info() { }
+    Info(int x) { }
+    void apply(const Tag &t, unsigned int size) { }
+    static Info merge(const Info &lhs, const Info &rhs) { }
+    static Info identity() { }
+};
+
+#endif
+
 namespace atcoder {
 
-template <class T>
+template <typename Info, typename Tag>
 struct treap {
-
   public:
-    treap() : root(new_node({}, 0)) {
-        d[root].cnt = 0;
-    }
 
-    void insert(unsigned int idx, T val, unsigned int priority) {
+    treap() : d(1, {Info::identity(), Info::identity(), {}, 0, 0, 0, 0, false}), root(0) { }
+
+    void insert(unsigned int idx, Info info, unsigned int priority) {
         unsigned int l, r;
         split(root, l, r, idx);
-        root = merge(merge(l, new_node(val, priority)), r);
+        root = merge(merge(l, new_node(info, priority)), r);
     }
 
-    void append(T val, unsigned int priority) {
-        root = merge(root, new_node(val, priority));
+    void append(Info info, unsigned int priority) {
+        root = merge(root, new_node(info, priority));
     }
 
     void erase(unsigned int l, unsigned int r) {
@@ -50,27 +68,31 @@ struct treap {
         root = merge(merge(a, merge(b2, b1)), c);
     }
 
-    T& operator [] (unsigned int idx) {
+    Info range_query(unsigned int l, unsigned int r) {
         unsigned int a, b, c;
-        split(root, b, c, idx + 1);
-        split(b, a, b, idx);
-        T &ret = d[b].val;
+        split(root, b, c, r + 1);
+        split(b, a, b, l);
+        Info ret = d[b].info;
         root = merge(merge(a, b), c);
         return ret;
+    }
+
+    void range_update(unsigned int l, unsigned int r, Tag tag) {
+        unsigned int a, b, c;
+        split(root, b, c, r + 1);
+        split(b, a, b, l);
+        d[b].lazy.apply(tag);
+        root = merge(merge(a, b), c);
     }
 
     unsigned int size() {
         return d[root].cnt;
     }
 
-    friend std::ostream& operator << (std::ostream& os, treap& t) {
-        t.print_rec(os, t.root);
-        return os;
-    }
-
   private:
+    
     struct node {
-        T val;
+        Info val, info; Tag lazy;
         unsigned int cnt, pri, left, right;
         bool rev;
     };
@@ -79,15 +101,15 @@ struct treap {
     std::vector<unsigned int> del;
     unsigned int root;
 
-    unsigned int new_node(T val, unsigned int priority) {
+    unsigned int new_node(Info val, unsigned int priority) {
         unsigned int id;
         if (del.empty()) {
             id = d.size();
-            d.push_back({val, 1, priority, 0, 0, false});
+            d.push_back({val, val, {}, 1, priority, 0, 0, false});
         } else {
             id = del.back();
             del.pop_back();
-            d[id] = {val, 1, priority, 0, 0, false};
+            d[id] = {val, val, {}, 1, priority, 0, 0, false};
         }
         return id;
     }
@@ -100,55 +122,51 @@ struct treap {
     }
 
     void push(unsigned int id) {
-        if (!d[id].rev) return;
-        std::swap(d[id].left, d[id].right);
-        if (d[id].left) d[d[id].left].rev ^= true;
-        if (d[id].right) d[d[id].right].rev ^= true;
-        d[id].rev = false;
+        if (d[id].rev) {
+            d[id].rev = false;
+            std::swap(d[id].left, d[id].right);
+            if (d[id].left) d[d[id].left].rev ^= true;
+            if (d[id].right) d[d[id].right].rev ^= true;
+        }
+        if (d[id].lazy == Tag()) return;
+        d[id].lazy = Tag();
+        d[id].val.apply(d[id].lazy, 1);
+        d[id].info.apply(d[id].lazy, d[id].cnt);
+        if (d[id].left) d[d[id].left].lazy.apply(d[id].lazy);
+        if (d[id].right) d[d[id].right].lazy.apply(d[id].lazy);
     }
 
-    void update_cnt(unsigned int id) {
+    void update_node(unsigned int id) {
         if (!id) return;
         d[id].cnt = 1 + d[d[id].left].cnt + d[d[id].right].cnt;
+        d[id].info = Info::merge(d[id].val, Info::merge(d[d[id].left].info, d[d[id].right].info));
     }
 
     void split(unsigned int id, unsigned int &l, unsigned int &r, unsigned int k) {
         if (!id) return void(l = r = 0);
         push(id);
         if (d[d[id].left].cnt < k) {
-            l = id;
             split(d[id].right, d[id].right, r, k - d[d[id].left].cnt - 1);
-        }
-        else {
-            r = id;
+            l = id;
+        } else {
             split(d[id].left, l, d[id].left, k);
+            r = id;
         }
-        update_cnt(id);
+        update_node(id);
     }
 
     int merge(unsigned int l, unsigned int r) {
         if (!l || !r) return l + r;
-        push(l);
-        push(r);
+        push(l); push(r);
         if (d[l].pri > d[r].pri) {
             d[l].right = merge(d[l].right, r);
-            return update_cnt(l), l;
+            return update_node(l), l;
         } else {
             d[r].left = merge(l, d[r].left);
-            return update_cnt(r), r;
+            return update_node(r), r;
         }
     }
-
-    
-
-    void print_rec(std::ostream& os, unsigned int id) {
-        if (!id) return;
-        print_rec(os, d[id].left);
-        os << d[id].val << ' ';
-        print_rec(os, d[id].right);
-    }
 };
-
 
 }   // namespace atcoder
 
