@@ -13,7 +13,7 @@ std::vector<int> rand_perm(size_t n) {
     std::mt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count());
     std::vector<int> p(n);
     std::iota(p.begin(), p.end(), 0);
-    std::random_shuffle(p.begin(), p.end(), rng);
+    std::shuffle(p.begin(), p.end(), rng);
     return p;
 }
 
