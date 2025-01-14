@@ -1,8 +1,6 @@
 #ifndef ATCODER_SEGTREE_HPP
 #define ATCODER_SEGTREE_HPP 1
 
-#include "internal_bit.hpp"
-
 #include <algorithm>
 #include <cassert>
 #include <functional>
@@ -22,7 +20,7 @@ template <class S, S (*op)(S, S), S (*e)()> struct segtree {
   public:
     segtree() : segtree(0) {}
     explicit segtree(unsigned int N) : segtree(std::vector<S>(N, e())) {}
-    explicit segtree(const std::vector<S> &v) : size(v.size()), n(internal::bit_ceil(v.size())), d(2 * n, e()) {
+    explicit segtree(const std::vector<S> &v) : size(v.size()), n(std::bit_ceil(v.size())), d(2 * n, e()) {
         std::copy(v.begin(), v.end(), d.begin() + n);
         for (unsigned int i = n - 1; i; i--) {
             pull(i);

@@ -1,21 +1,30 @@
 #ifndef ATCODER_PERSISTENT_SEGTREE_HPP
 #define ATCODER_PERSISTENT_SEGTREE_HPP 1
 
-#include "internal_bit.hpp"
+// #include "internal_bit.hpp"
 
 #include <vector>
 #include <cassert>
 #include <iostream>
+#include <bit>
 
 namespace atcoder {
 
-template <class S, S (*op)(S, S), S (*e)()> struct persistent_segtree {
+#ifdef COMMENT
+
+int op(int a, int b) { return a + b; }
+int e() { return 0; }
+
+#endif
+
+template <class S, S (*op)(S, S), S (*e)()> 
+struct persistent_segtree {
   public:
 
     persistent_segtree() : persistent_segtree(0) {}
     explicit persistent_segtree(unsigned int N) : persistent_segtree(std::vector<S>(N, e())) {}
     explicit persistent_segtree(const std::vector<S> &v) : size(v.size()), 
-                                                           n(internal::bit_ceil(v.size())), 
+                                                           n(std::bit_ceil(v.size())), 
                                                            d(2 * n, e()), 
                                                            lch(2 * n), 
                                                            rch(2 * n), 

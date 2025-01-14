@@ -16,15 +16,16 @@ struct dsu {
     dsu() : _n(0) {}
     explicit dsu(int n) : _n(n), parent_or_size(n, -1) {}
 
+    // Returns false if a and b are already in the same group.
     int merge(int a, int b) {
         assert(0 <= a && a < _n);
         assert(0 <= b && b < _n);
         int x = leader(a), y = leader(b);
-        if (x == y) return x;
+        if (x == y) return false;
         if (-parent_or_size[x] < -parent_or_size[y]) std::swap(x, y);
         parent_or_size[x] += parent_or_size[y];
         parent_or_size[y] = x;
-        return x;
+        return true;
     }
 
     bool same(int a, int b) {

@@ -1,12 +1,10 @@
 #ifndef ATCODER_LAZYSEGTREE_HPP
 #define ATCODER_LAZYSEGTREE_HPP 1
 
-#include "internal_bit.hpp"
-
 #include <vector>
 #include <functional>
 #include <cassert>
-#include <type_traits>
+#include <bit>
 
 namespace atcoder {
 
@@ -34,7 +32,7 @@ template <typename Info, typename Tag>
 struct lazysegtree {
   public:
 
-    lazysegtree(unsigned int N) : n(internal::bit_ceil(N)), tree(2 * n), lazy(2 * n) { }
+    lazysegtree(unsigned int N) : n(std::bit_ceil(N)), tree(2 * n), lazy(2 * n) { }
 
     void point_update(unsigned int idx, const Info &x) {
         assert(0 <= idx && idx < n);

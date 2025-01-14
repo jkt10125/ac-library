@@ -1,12 +1,13 @@
 #ifndef ATCODER_SEGTREE_BEATS_HPP
 #define ATCODER_SEGTREE_BEATS_HPP 1
 
-#include "internal_bit.hpp"
+// #include "internal_bit.hpp"
 
 #include <vector>
 #include <array>
 #include <climits>
 #include <cassert>
+#include <bit>
 
 namespace atcoder {
 
@@ -16,7 +17,7 @@ struct segtree_beats {
     segtree_beats() : segtree_beats(0) {}
     explicit segtree_beats(unsigned int N) : segtree_beats(std::vector<int>(N, INT_MIN)) {}
     explicit segtree_beats(const std::vector<int>& v) : size(v.size()), 
-                                                        n(internal::bit_ceil(v.size())), 
+                                                        n(std::bit_ceil(v.size())), 
                                                         d(2 * n), 
                                                         lz(2 * n, INT_MAX) {
         for (unsigned int i = n; i < 2 * n; i++) {

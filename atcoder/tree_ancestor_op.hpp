@@ -12,12 +12,11 @@ template <class S, S (*op)(S, S), S (*e)()> struct treeancestor_op {
 
   public:
     
-    treeancestor_op(const std::vector<std::vector<std::pair<int, S>>>& A, int root) {
-        _n = int(A.size());
-        log = std::__lg(_n - 1) + 1;
+    treeancestor_op(const std::vector<std::vector<std::pair<int, S>>>& A, int root) : _n(A.size()), log(0) {
+        while ((1 << log) < _n) log++;
         lvl.resize(_n);
         lift.resize(log, std::vector<int>(_n));
-        maxe.resize(log, std::vector<S>(_n));
+        d.resize(log, std::vector<S>(_n));
 
         dfs(root, -1, A);
     }
@@ -61,16 +60,16 @@ template <class S, S (*op)(S, S), S (*e)()> struct treeancestor_op {
         return lift[0][x];
     }
 
-    S prod(int x, int y) {
+    S query(int x, int y) {
         int l = lca(x, y);
         S res = e();
         for (int i = log - 1; i >= 0; i--) {
             if (lvl[x] - (1 << i) >= lvl[l]) {
-                res = op(res, maxe[i][x]);
+                res = op(res, d[i][x]);
                 x = lift[i][x];
             }
             if (lvl[y] - (1 << i) >= lvl[l]) {
-                res = op(res, maxe[i][y]);
+                res = op(res, d[i][y]);
                 y = lift[i][y];
             }
         }
@@ -80,7 +79,7 @@ template <class S, S (*op)(S, S), S (*e)()> struct treeancestor_op {
   private:
     int _n, log;
     std::vector<int> lvl;
-    std::vector<std::vector<S>> maxe;
+    std::vector<std::vector<S>> d;
     std::vector<std::vector<int>> lift;
 
     void dfs(int x, int p, const std::vector<std::vector<std::pair<int, S>>>& A) {
@@ -88,11 +87,11 @@ template <class S, S (*op)(S, S), S (*e)()> struct treeancestor_op {
         lift[0][x] = p;
         for (int i = 1; i < log; i++) {
             lift[i][x] = (lift[i - 1][x] != -1) ? lift[i - 1][lift[i - 1][x]] : -1;
-            maxe[i][x] = op(maxe[i - 1][x], (lift[i - 1][x] != -1) ? maxe[i - 1][lift[i - 1][x]] : e());
+            d[i][x] = op(d[i - 1][x], (lift[i - 1][x] != -1) ? d[i - 1][lift[i - 1][x]] : e());
         }
         for (auto [y, w] : A[x]) {
             if (y != p) {
-                maxe[0][y] = w;
+                d[0][y] = w;
                 dfs(y, x, A);
             }
         }
