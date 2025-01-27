@@ -8,6 +8,130 @@
 
 namespace atcoder {
 
+#ifdef RANGE_ADD_RANGE_MIN
+
+struct Tag {
+    long long v;
+    Tag() : v(0) { }
+    Tag(long long x) : v(x) { }
+    void apply(const Tag &t) {
+        v += t.v;
+    }
+    bool operator == (const Tag &t) const {
+        return v == t.v;
+    }
+};
+ 
+struct Info {
+    long long v;
+    Info() : v(0) { }
+    Info(long long x) : v(x) { }
+    void apply(const Tag &t, unsigned int size) {
+        v += t.v;
+    }
+    static Info merge(const Info &lhs, const Info &rhs) {
+        return std::min(lhs.v, rhs.v);
+    }
+    static Info identity() {
+        return 1000000000000000007ll;
+    }
+};
+
+#endif
+
+#ifdef RANGE_ADD_RANGE_SUM
+
+struct Tag {
+    long long v;
+    Tag() : v(0) { }
+    Tag(long long x) : v(x) { }
+    void apply(const Tag &t) {
+        v += t.v;
+    }
+    bool operator == (const Tag &t) const {
+        return v == t.v;
+    }
+};
+ 
+struct Info {
+    long long v;
+    Info() : v(0) { }
+    Info(long long x) : v(x) { }
+    void apply(const Tag &t, unsigned int size) {
+        v += t.v * size;
+    }
+    static Info merge(const Info &lhs, const Info &rhs) {
+        return Info(lhs.v + rhs.v);
+    }
+    static Info identity() {
+        return 0ll;
+    }
+};
+
+#endif
+
+#ifdef RANGE_SET_RANGE_MIN
+
+struct Tag {
+    long long v;
+    Tag() : v(1000000000000000007ll) { }
+    Tag(long long x) : v(x) { }
+    void apply(const Tag &t) {
+        v = t.v;
+    }
+    bool operator == (const Tag &t) const {
+        return v == t.v;
+    }
+};
+ 
+struct Info {
+    long long v;
+    Info() : v(0) { }
+    Info(long long x) : v(x) { }
+    void apply(const Tag &t, unsigned int size) {
+        v = t.v;
+    }
+    static Info merge(const Info &lhs, const Info &rhs) {
+        return std::min(lhs.v, rhs.v);
+    }
+    static Info identity() {
+        return 1000000000000000007ll;
+    }
+};
+
+#endif
+
+#ifdef RANGE_SET_RANGE_SUM
+
+struct Tag {
+    long long v;
+    Tag() : v(1000000000000000007ll) { }
+    Tag(long long x) : v(x) { }
+    void apply(const Tag &t) {
+        v = t.v;
+    }
+    bool operator == (const Tag &rhs) const {
+        return v == rhs.v;
+    }
+};
+ 
+struct Info {
+    long long v;
+    Info() : v(0) { }
+    Info(long long x) : v(x) { }
+    void apply(const Tag &t, unsigned int size) {
+        v = t.v * size;
+    }
+    static Info merge(const Info &lhs, const Info &rhs) {
+        return lhs.v + rhs.v;
+    }
+    static Info identity() {
+        return 0ll;
+    }
+};
+
+#endif
+
 #ifdef COMMENT
 
 struct Tag {
@@ -15,7 +139,6 @@ struct Tag {
     Tag(int x) { }
     void apply(const Tag &t) { }
     bool operator == (const Tag &t) { }
-    // return true in the == operator if you do not want lazy propagation
 };
 
 struct Info {
